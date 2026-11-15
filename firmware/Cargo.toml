@@ -18,9 +18,16 @@ stm32f4xx-hal = { version = "0.23.0", features = ["stm32f411"] }
 cortex-m   = "0.7.10"
 cortex-m-rt   = "0.7.7"
 panic-halt   = "1.0.0"
+defmt       = { version = "1", optional = true }
+defmt-rtt   = { version = "1", optional = true }
+panic-probe = { version = "1", optional = true, features = ["print-defmt"] }
 boot-layout = { workspace = true }
 
 [profile.release]
 opt-level = "s"
 lto = true
 debug = true
+
+[features]
+default = ["defmt"]
+defmt = ["dep:defmt", "dep:defmt-rtt", "dep:panic-probe"]
