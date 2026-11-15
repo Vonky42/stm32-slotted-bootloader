@@ -1,0 +1,18 @@
+/* The STM32F411RE 512KB Flash memory is split into
+   erase-sectors as follows:
+-----------------------------------------------------
+Sector 0 | 0x0800 0000 - 0x0800 3FFF | 16 Kbytes
+Sector 1 | 0x0800 4000 - 0x0800 7FFF | 16 Kbytes
+Sector 2 | 0x0800 8000 - 0x0800 BFFF | 16 Kbytes
+Sector 3 | 0x0800 C000 - 0x0800 FFFF | 16 Kbytes
+Sector 4 | 0x0801 0000 - 0x0801 FFFF | 64 Kbytes
+Sector 5 | 0x0802 0000 - 0x0803 FFFF | 128 Kbytes
+Sector 6 | 0x0804 0000 - 0x0805 FFFF | 128 Kbytes
+Sector 7 | 0x0806 0000 - 0x0807 FFFF | 128 Kbytes
+----------------------------------------------------- */
+
+MEMORY
+{
+  FLASH : ORIGIN = 0x08000000, LENGTH = 32K /* Bootloader sits in slots {0,1} */ 
+  RAM : ORIGIN = 0x20000000, LENGTH = 128K
+}
