@@ -28,6 +28,7 @@ pub struct Slot {
     pub length: u32,
 }
 impl Slot {
+    /// Adds an offset of size `HEADER_SIZE` to the base address and shrinks the length accordingly
     pub const fn add_vtor_header(self) -> Slot {
         Slot {
             base: self.base + HEADER_SIZE,
@@ -65,18 +66,21 @@ pub const BOOTLOADER: Slot = Slot {
     base: FLASH_ORIGIN,
     length: BOOTLOADER_LENGTH,
 }; // Sectors 0 and 1
+
+/// Emit bootloader memory layout as memory.x linker file
 #[cfg(feature = "build")]
 pub fn emit_bootloader_memory_x() {
     emit_memory_x(BOOTLOADER);
 }
 
-// Application memory layout
+/// Emit application memory layout as memory.x linker file for the provided `slot`
 #[cfg(feature = "build")]
 pub fn emit_application_memory_x(slot_number: usize) {
     let slot: Slot = FLASH_SLOTS[slot_number].add_vtor_header();
     emit_memory_x(slot);
 }
 
+/// Emits a memory.x linker file for the provided `slot`
 #[cfg(feature = "build")]
 fn emit_memory_x(flash: Slot) {
     use std::{env, fs, path::PathBuf};

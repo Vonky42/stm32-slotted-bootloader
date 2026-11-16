@@ -4,3 +4,10 @@ macro_rules! info {
         ::defmt::info!($($arg)*);
     }};
 }
+
+macro_rules! debug {
+    ($($arg:tt)*) => {{
+        #[cfg(feature = "defmt")]
+        ::defmt::debug!($($arg)*);
+    }};
+}
