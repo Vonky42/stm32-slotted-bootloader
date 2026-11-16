@@ -11,6 +11,7 @@ stm32f4xx-hal = { version = "0.23.0", features = ["stm32f411"] }
 cortex-m   = "0.7.10"
 cortex-m-rt   = "0.7.7"
 panic-halt   = "1.0.0"
+critical-section = "1"
 boot-layout = { workspace = true }
 
 [[bin]]
@@ -19,4 +20,5 @@ name = "blinky"
 [profile.release]
 opt-level = "s"
 lto = true
+codegen-units = 1
 debug = true
