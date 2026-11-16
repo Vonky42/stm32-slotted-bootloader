@@ -3,31 +3,31 @@ name = "stm32-slotted-bootloader"
 version = "0.1.0"
 edition = "2024"
 
-[workspace]
-members = ["applications/*", "crates/boot-layout"]
-resolver = "2"
+[features]
+default = ["defmt"]
+defmt = ["dep:defmt", "dep:defmt-rtt", "dep:panic-probe"]
 
-[workspace.dependencies]
-boot-layout = { path = "crates/boot-layout" }
+[dependencies]
+boot-layout = { workspace = true }
+cortex-m = "0.7.10"
+cortex-m-rt = "0.7.7"
+defmt = { version = "1", optional = true }
+defmt-rtt = { version = "1", optional = true }
+panic-halt = "1.0.0"
+panic-probe = { version = "1", features = ["print-defmt"], optional = true }
+stm32f4xx-hal = { version = "0.23.0", features = ["stm32f411"] }
 
 [build-dependencies]
 boot-layout = { workspace = true, features = ["build"] }
 
-[dependencies]
-stm32f4xx-hal = { version = "0.23.0", features = ["stm32f411"] }
-cortex-m   = "0.7.10"
-cortex-m-rt   = "0.7.7"
-panic-halt   = "1.0.0"
-defmt       = { version = "1", optional = true }
-defmt-rtt   = { version = "1", optional = true }
-panic-probe = { version = "1", optional = true, features = ["print-defmt"] }
-boot-layout = { workspace = true }
+[workspace]
+resolver = "2"
+members = ["applications/*", "crates/boot-layout"]
+
+[workspace.dependencies]
+boot-layout = { path = "crates/boot-layout" }
 
 [profile.release]
 opt-level = "s"
-lto = true
 debug = true
-
-[features]
-default = ["defmt"]
-defmt = ["dep:defmt", "dep:defmt-rtt", "dep:panic-probe"]
+lto = true
