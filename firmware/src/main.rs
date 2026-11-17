@@ -4,7 +4,7 @@
 #[macro_use]
 mod fmt;
 
-use boot_layout::{Image, SLOTS};
+use boot_layout::{ERASED, Image, SLOT_MAGIC, SLOTS, SlotHeader};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
 use stm32f4xx_hal as _;
@@ -52,9 +52,45 @@ fn jump_to_slot(image: Image) -> ! {
     }
 }
 
+fn scan_slots() {
+    for (index, slot) in SLOTS.iter().enumerate() {
+        let base = slot.header_region().base;
+        let header = unsafe { SlotHeader::at(slot) };
+
+        match header.magic {
+            ERASED => {
+                debug!("slot {} @ {:#010x}: empty", index, base)
+            }
+            SLOT_MAGIC => {
+                let (major, minor, patch) = header.version_parts();
+                debug!(
+                    "slot {} @ {:#010x}: '{=str}' v{}.{}.{} built for slot {}, \
+                     size={} crc={:#010x} hcrc={:#010x}",
+                    index,
+                    base,
+                    header.name(),
+                    major,
+                    minor,
+                    patch,
+                    header.slot_number,
+                    header.image_size,
+                    header.image_crc,
+                    header.header_crc,
+                );
+            }
+            other => debug!(
+                "slot {} @ {:#010x}: unknown magic {:#010x}",
+                index, base, other
+            ),
+        }
+    }
+}
+
 #[entry]
 fn main() -> ! {
     info!("Hello, poard!");
+    cortex_m::asm::delay(8_000_000);
+    scan_slots();
     cortex_m::asm::delay(8_000_000);
     jump_to_slot(Image::Application(SLOTS[0]));
 }

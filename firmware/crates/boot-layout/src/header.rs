@@ -1,4 +1,8 @@
-use crate::layout::{NAME_LENGTH, SLOT_MAGIC};
+use crate::layout::Slot;
+
+pub const ERASED: u32 = 0xFFFF_FFFF;
+pub const SLOT_MAGIC: u32 = 0x099D_7DD5;
+pub const NAME_LENGTH: usize = 63;
 
 #[repr(C)]
 pub struct SlotHeader {
@@ -23,6 +27,30 @@ impl SlotHeader {
             image_crc: 0,
             header_crc: 0,
         }
+    }
+
+    /// View the header at the start of `slot` in flash memory
+    pub unsafe fn at(slot: &Slot) -> &'static SlotHeader {
+        unsafe { &*(slot.header_region().base as *const SlotHeader) }
+    }
+
+    /// Application name as found in the header
+    pub fn name(&self) -> &str {
+        let len = self
+            .name
+            .iter()
+            .position(|&b| b == 0)
+            .unwrap_or(NAME_LENGTH);
+        core::str::from_utf8(&self.name[..len]).unwrap_or("<not utf8>")
+    }
+
+    /// Version parts (major, minor, patch) as found in the header
+    pub fn version_parts(&self) -> (u8, u8, u8) {
+        (
+            ((self.version >> 16) as u8),
+            ((self.version >> 8) as u8),
+            (self.version as u8),
+        )
     }
 }
 

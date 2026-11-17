@@ -15,8 +15,6 @@ Sector 7 | 0x0806 0000 - 0x0807 FFFF | 128 Kbytes
 // Constants
 const HEADER_SIZE: u32 = 0x200;
 const K: u32 = 1024;
-pub const SLOT_MAGIC: u32 = 0x099D_7DD5;
-pub const NAME_LENGTH: usize = 63;
 // May be specific to the STM32F411RE
 const FLASH_ORIGIN: u32 = 0x0800_0000;
 const BOOTLOADER_LENGTH: u32 = 32 * K; // Sectors 0 and 1
