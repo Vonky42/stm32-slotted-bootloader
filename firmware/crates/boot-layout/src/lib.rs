@@ -1,10 +1,12 @@
 #![cfg_attr(not(feature = "build"), no_std)]
 
+mod crc;
 mod header;
 mod layout;
 #[cfg(feature = "build")]
 mod memory_x;
 
+pub use crc::*;
 pub use header::*;
 pub use layout::*;
 #[cfg(feature = "build")]

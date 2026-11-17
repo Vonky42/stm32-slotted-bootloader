@@ -52,6 +52,12 @@ impl SlotHeader {
             (self.version as u8),
         )
     }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        unsafe {
+            core::slice::from_raw_parts(self as *const SlotHeader as *const u8, size_of::<Self>())
+        }
+    }
 }
 
 /// Returns the bytes of the name string `s`. Truncated at 63 bytes

@@ -4,7 +4,7 @@
 #[macro_use]
 mod fmt;
 
-use boot_layout::{ERASED, Image, SLOT_MAGIC, SLOTS, SlotHeader};
+use boot_layout::{ERASED, Image, SLOT_MAGIC, SLOTS, SlotHeader, header_crc, image_crc};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
 use stm32f4xx_hal as _;
@@ -77,6 +77,17 @@ fn scan_slots() {
                     header.image_crc,
                     header.header_crc,
                 );
+                debug!("Computed header crc: {}", header_crc(header.as_bytes()));
+                let application = slot.application_region();
+                unsafe {
+                    debug!(
+                        "Computed image crc: {}",
+                        image_crc(core::slice::from_raw_parts(
+                            application.base as *const u8,
+                            application.length as usize
+                        ))
+                    );
+                }
             }
             other => debug!(
                 "slot {} @ {:#010x}: unknown magic {:#010x}",
