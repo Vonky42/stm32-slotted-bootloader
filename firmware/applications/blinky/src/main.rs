@@ -16,7 +16,7 @@ use stm32f4xx_hal::{
 static LED: Mutex<RefCell<Option<PA5<Output>>>> = Mutex::new(RefCell::new(None));
 static TIMER: Mutex<RefCell<Option<CounterHz<pac::TIM2>>>> = Mutex::new(RefCell::new(None));
 
-const TOGGLE_HZ: u32 = 4;
+const TOGGLE_HZ: u32 = 1;
 
 #[interrupt]
 fn TIM2() {
@@ -29,6 +29,8 @@ fn TIM2() {
         }
     });
 }
+
+boot_layout::slot_header!();
 
 #[entry]
 fn main() -> ! {
