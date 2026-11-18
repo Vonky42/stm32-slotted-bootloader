@@ -11,3 +11,10 @@ macro_rules! debug {
         ::defmt::debug!($($arg)*);
     }};
 }
+
+macro_rules! error {
+    ($($arg:tt)*) => {{
+        #[cfg(feature = "defmt")]
+        ::defmt::error!($($arg)*);
+    }};
+}

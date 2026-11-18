@@ -3,15 +3,18 @@
 
 #[macro_use]
 mod fmt;
+mod validate;
 
-use boot_layout::{ERASED, Image, SLOT_MAGIC, SLOTS, SlotHeader, header_crc, image_crc};
+use boot_layout::{Image, SLOT_COUNT, SLOTS, SlotHeader};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
 use stm32f4xx_hal as _;
 
 // Debug logging
+use crate::validate::SlotError;
 #[cfg(not(feature = "defmt"))]
 use panic_halt as _;
+
 #[cfg(feature = "defmt")]
 use {defmt_rtt as _, panic_probe as _};
 
@@ -52,56 +55,47 @@ fn jump_to_slot(image: Image) -> ! {
     }
 }
 
-fn scan_slots() {
-    for (index, slot) in SLOTS.iter().enumerate() {
-        let base = slot.header_region().base;
-        let header = unsafe { SlotHeader::at(slot) };
+type Scan = [Result<SlotHeader, SlotError>; SLOT_COUNT];
 
-        match header.magic {
-            ERASED => {
-                debug!("slot {} @ {:#010x}: empty", index, base)
-            }
-            SLOT_MAGIC => {
+/// Scan the application slots and log debug info
+fn scan_slots() -> Scan {
+    core::array::from_fn(|index| {
+        let r = validate::validate(SLOTS[index]);
+        match &r {
+            Ok(header) => {
                 let (major, minor, patch) = header.version_parts();
                 debug!(
-                    "slot {} @ {:#010x}: '{=str}' v{}.{}.{} built for slot {}, \
-                     size={} crc={:#010x} hcrc={:#010x}",
+                    "slot {}: valid '{=str}' v{}.{}.{} ({} B)",
                     index,
-                    base,
                     header.name(),
                     major,
                     minor,
                     patch,
-                    header.slot_number,
-                    header.image_size,
-                    header.image_crc,
-                    header.header_crc,
+                    header.image_size
                 );
-                debug!("Computed header crc: {}", header_crc(header.as_bytes()));
-                let application = slot.application_region();
-                unsafe {
-                    debug!(
-                        "Computed image crc: {}",
-                        image_crc(core::slice::from_raw_parts(
-                            application.base as *const u8,
-                            application.length as usize
-                        ))
-                    );
-                }
             }
-            other => debug!(
-                "slot {} @ {:#010x}: unknown magic {:#010x}",
-                index, base, other
-            ),
+            Err(err) => debug!("slot {}: {}", index, err),
         }
-    }
+        r
+    })
+}
+
+fn default_slot(scan: &Scan) -> Option<usize> {
+    scan.iter().position(|slot_scan| slot_scan.is_ok())
 }
 
 #[entry]
 fn main() -> ! {
     info!("Hello, poard!");
     cortex_m::asm::delay(8_000_000);
-    scan_slots();
-    cortex_m::asm::delay(8_000_000);
+    let scan = scan_slots();
+    match default_slot(&scan) {
+        Some(index) => jump_to_slot(Image::Application(SLOTS[index])),
+        None => {
+            error!("no valid slot!");
+        }
+    }
+
+    // jump anyway for now
     jump_to_slot(Image::Application(SLOTS[0]));
 }

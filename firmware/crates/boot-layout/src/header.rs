@@ -5,6 +5,7 @@ pub const SLOT_MAGIC: u32 = 0x099D_7DD5;
 pub const NAME_LENGTH: usize = 63;
 
 #[repr(C)]
+#[derive(Clone, Copy, Debug)]
 pub struct SlotHeader {
     pub magic: u32,
     pub slot_number: u8,

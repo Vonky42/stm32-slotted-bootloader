@@ -13,8 +13,9 @@ Sector 7 | 0x0806 0000 - 0x0807 FFFF | 128 Kbytes
 ----------------------------------------------------- */
 
 // Constants
-const HEADER_SIZE: u32 = 0x200;
+pub const HEADER_SIZE: u32 = 0x200;
 const K: u32 = 1024;
+pub const SLOT_COUNT: usize = 4;
 // May be specific to the STM32F411RE
 const FLASH_ORIGIN: u32 = 0x0800_0000;
 const BOOTLOADER_LENGTH: u32 = 32 * K; // Sectors 0 and 1
@@ -38,6 +39,10 @@ impl Region {
             Region::new(self.base, at),
             Region::new(self.base + at, self.length - at),
         )
+    }
+
+    pub const fn as_bytes(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.base as *const u8, self.length as usize) }
     }
 }
 
@@ -67,7 +72,7 @@ pub enum Image {
 }
 
 /// Indexed application `Slot` flash memory Regions
-pub const SLOTS: [Slot; 4] = [
+pub const SLOTS: [Slot; SLOT_COUNT] = [
     Slot::new(0, Region::new(0x0801_0000, 64 * K)),
     Slot::new(1, Region::new(0x0802_0000, 128 * K)),
     Slot::new(2, Region::new(0x0804_0000, 128 * K)),
