@@ -3,7 +3,7 @@ use core::mem::offset_of;
 use crc::{CRC_32_ISO_HDLC, Crc};
 
 const CRC32: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
-const HEADER_CRC_PAYLOAD: usize = offset_of!(SlotHeader, header_crc);
+pub const HEADER_CRC_PAYLOAD: usize = offset_of!(SlotHeader, header_crc);
 
 pub fn crc32(bytes: &[u8]) -> u32 {
     CRC32.checksum(bytes)
