@@ -133,7 +133,7 @@ fn flash_app(application: &FlashApp) -> Result<()> {
 
     std::fs::write(&bin_path, &bin)?;
     println!(
-        "{}: built for slot {}, {:#010x} B -> {:#010x}",
+        "{}: built for slot {}, {} B -> {:#010x}",
         application.name,
         application.slot.index,
         bin.len(),

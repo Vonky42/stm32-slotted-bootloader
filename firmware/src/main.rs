@@ -5,7 +5,7 @@
 mod fmt;
 mod validate;
 
-use boot_layout::{Image, SLOT_COUNT, SLOTS, SlotHeader};
+use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotHeader};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
 use stm32f4xx_hal as _;
@@ -60,18 +60,24 @@ type Scan = [Result<SlotHeader, SlotError>; SLOT_COUNT];
 /// Scan the application slots and log debug info
 fn scan_slots() -> Scan {
     core::array::from_fn(|index| {
-        let r = validate::validate(SLOTS[index]);
+        let slot = SLOTS[index];
+        let r = validate::validate(slot);
         match &r {
             Ok(header) => {
                 let (major, minor, patch) = header.version_parts();
+                let size = header.image_size + HEADER_SIZE;
+                let permille = (size * 1000) / slot.region.length;
                 debug!(
-                    "slot {}: valid '{=str}' v{}.{}.{} ({} B)",
+                    "slot {}: valid '{=str}' v{}.{}.{} ({} B of {} B ({}.{} %))",
                     index,
                     header.name(),
                     major,
                     minor,
                     patch,
-                    header.image_size
+                    size,
+                    slot.region.length,
+                    permille / 10,
+                    permille % 10
                 );
             }
             Err(err) => debug!("slot {}: {}", index, err),
