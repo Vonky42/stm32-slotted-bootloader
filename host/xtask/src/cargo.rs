@@ -12,7 +12,7 @@ pub fn firmware_dir() -> PathBuf {
 }
 
 /// Build `package` in the firmware workspace and return the path to its ELF
-pub fn build(package: &str, args: &BuildArgs) -> Result<PathBuf> {
+pub fn build(package: &str, args: &BuildArgs, env: &[(&str, String)]) -> Result<PathBuf> {
     let dir = firmware_dir();
     let mut cmd = Command::new("cargo");
     cmd.current_dir(&dir);
@@ -29,6 +29,8 @@ pub fn build(package: &str, args: &BuildArgs) -> Result<PathBuf> {
     if !args.features.is_empty() {
         cmd.args(["--features", &args.features.join(",")]);
     }
+
+    cmd.envs(env.iter().map(|(k, v)| (k, v)));
 
     run(&mut cmd)?;
 

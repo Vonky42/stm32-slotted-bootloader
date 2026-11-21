@@ -44,6 +44,10 @@ impl Region {
     pub const fn as_bytes(&self) -> &[u8] {
         unsafe { core::slice::from_raw_parts(self.base as *const u8, self.length as usize) }
     }
+
+    pub const fn end(&self) -> u32 {
+        self.base + self.length
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -62,6 +66,10 @@ impl Slot {
     }
     pub const fn application_region(self) -> Region {
         self.region.split_at(HEADER_SIZE).1
+    }
+
+    pub fn from_index(index: usize) -> Option<Slot> {
+        SLOTS.get(index).copied()
     }
 }
 

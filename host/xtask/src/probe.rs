@@ -19,3 +19,17 @@ pub fn run_elf(elf: &Path) -> Result<()> {
         .args(["run", "--chip", CHIP])
         .arg(elf))
 }
+
+pub fn download_bin(bin_path: &Path, base: u32) -> Result<()> {
+    run(Command::new("probe-rs")
+        .args([
+            "download",
+            "--chip",
+            CHIP,
+            "--binary-format",
+            "bin",
+            "--base-address",
+            &format!("{base:#x}"),
+        ])
+        .arg(bin_path))
+}
