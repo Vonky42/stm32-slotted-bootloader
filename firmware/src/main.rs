@@ -93,7 +93,6 @@ fn default_slot(scan: &Scan) -> Option<usize> {
 #[entry]
 fn main() -> ! {
     info!("Hello, poard!");
-    cortex_m::asm::delay(8_000_000);
     let scan = scan_slots();
     match default_slot(&scan) {
         Some(index) => jump_to_slot(Image::Application(SLOTS[index])),

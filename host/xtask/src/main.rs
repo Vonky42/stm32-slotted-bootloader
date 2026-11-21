@@ -27,6 +27,11 @@ enum Cmd {
         #[command(subcommand)]
         target: FlashTarget,
     },
+    /// Erase an application slot
+    Erase {
+        #[arg(long, value_parser = parse_slot)]
+        slot: Slot,
+    },
 }
 
 #[derive(Subcommand)]
@@ -101,6 +106,7 @@ fn main() -> Result<()> {
             FlashTarget::Bootloader { build, log } => flash_bootloader(&build, *log),
             FlashTarget::App(application) => flash_app(application),
         },
+        Cmd::Erase { slot } => erase_slot(&slot),
     }
 }
 
@@ -191,4 +197,25 @@ fn elf_to_bin(elf_path: &Path, slot: Slot) -> Result<Vec<u8>> {
     }
 
     Ok(bin)
+}
+
+/// Erases `slot` by flashing a single ERASED (0xFF) byte to it. Each flash is preceded by a complete sector erasion, thus this erases the whole sector / empties the slot
+fn erase_slot(slot: &Slot) -> Result<()> {
+    let bin_path = cargo::firmware_dir()
+        .join("target")
+        .join("thumbv7em-none-eabihf")
+        .join(format!("erase-slot{}.bin", slot.index));
+
+    // STM32 erases the whole sector before flashing. A single ERASED byte (0xFF) write will thus cause hardware erase and cost only 1 byte of programming
+    std::fs::write(&bin_path, vec![0xFF])?;
+
+    println!(
+        "erasing slot {} ({:#010x}, {} KB)",
+        slot.index,
+        slot.region.base,
+        slot.region.length / 1024
+    );
+
+    probe::download_bin(&bin_path, slot.region.base)?;
+    probe::reset()
 }
