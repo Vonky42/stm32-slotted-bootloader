@@ -3,7 +3,6 @@
 
 #[macro_use]
 mod fmt;
-mod validate;
 
 use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
 use cortex_m::asm::{self, bootload};

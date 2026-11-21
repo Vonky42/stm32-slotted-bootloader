@@ -1,5 +1,6 @@
 mod cargo;
 mod probe;
+mod scan;
 
 use anyhow::{Context, Result, anyhow, bail};
 use boot_layout::{HEADER_SIZE, SLOT_COUNT, Slot, patch};
@@ -9,6 +10,8 @@ use object::{
     read::elf::{ElfFile32, ProgramHeader},
 };
 use std::path::Path;
+
+use crate::scan::scan_slots;
 
 const CHIP: &str = "STM32F411RETx";
 const BOOTLOADER: &str = "stm32-slotted-bootloader";
@@ -33,7 +36,10 @@ enum Cmd {
         slot: Slot,
     },
     /// Scan the application slots
-    Scan,
+    Scan {
+        #[arg(long)]
+        under_reset: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -109,7 +115,7 @@ fn main() -> Result<()> {
             FlashTarget::App(application) => flash_app(application),
         },
         Cmd::Erase { slot } => erase_slot(&slot),
-        Cmd::Scan => todo!(),
+        Cmd::Scan { under_reset } => scan_slots(under_reset),
     }
 }
 

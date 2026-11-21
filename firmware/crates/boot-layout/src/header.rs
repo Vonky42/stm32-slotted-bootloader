@@ -61,7 +61,7 @@ impl SlotHeader {
     }
 
     pub fn from_bytes(bytes: &[u8; size_of::<SlotHeader>()]) -> Self {
-        unsafe { core::ptr::read_unaligned((bytes.as_ptr().cast())) }
+        unsafe { core::ptr::read_unaligned(bytes.as_ptr().cast()) }
     }
 }
 

@@ -12,7 +12,7 @@ pub enum SlotError {
     BadVectors { msp: u32, rv: u32 },
 }
 
-fn validate_header(slot: Slot, header: &SlotHeader) -> Result<SlotHeader, SlotError> {
+pub fn validate_header(slot: Slot, header: &SlotHeader) -> Result<SlotHeader, SlotError> {
     use SlotError::*;
 
     // Magic
@@ -44,12 +44,16 @@ fn validate_header(slot: Slot, header: &SlotHeader) -> Result<SlotHeader, SlotEr
     Ok(*header)
 }
 
-fn validate_image(slot: Slot, header: &SlotHeader, image: &[u8]) -> Result<SlotHeader, SlotError> {
+pub fn validate_image(
+    slot: Slot,
+    header: &SlotHeader,
+    image: &[u8],
+) -> Result<SlotHeader, SlotError> {
     use SlotError::*;
     let application = slot.application_region();
 
     // Image size
-    if image.len() != header.image_size as usize {
+    if image.len() != header.image_size as usize || image.len() < 8 {
         return Err(BadSize(header.image_size));
     }
 
@@ -63,8 +67,11 @@ fn validate_image(slot: Slot, header: &SlotHeader, image: &[u8]) -> Result<SlotH
     }
 
     // Vector table
-    let msp: u32 = unsafe { (application.base as *const u32).read() };
-    let rv: u32 = unsafe { (application.base as *const u32).add(1).read() };
+    // let msp: u32 = unsafe { (application.base as *const u32).read() };
+    // let rv: u32 = unsafe { (application.base as *const u32).add(1).read() };
+    let msp = u32::from_le_bytes(image[0..4].try_into().unwrap());
+    let rv = u32::from_le_bytes(image[4..8].try_into().unwrap());
+
     let msp_ok: bool = msp > RAM.base && msp <= RAM.base + RAM.length && msp % 8 == 0;
     let reset_target: u32 = rv & !1;
     let rv_ok: bool = rv & 0b1 > 0
