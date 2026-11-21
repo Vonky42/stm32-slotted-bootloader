@@ -96,6 +96,5 @@ fn main() -> ! {
         }
     }
 
-    // jump anyway for now
-    jump_to_slot(Image::Application(SLOTS[0]));
+    loop {} // do nothing
 }
