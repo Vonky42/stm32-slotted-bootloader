@@ -59,6 +59,10 @@ impl SlotHeader {
             core::slice::from_raw_parts(self as *const SlotHeader as *const u8, size_of::<Self>())
         }
     }
+
+    pub fn from_bytes(bytes: &[u8; size_of::<SlotHeader>()]) -> Self {
+        unsafe { core::ptr::read_unaligned((bytes.as_ptr().cast())) }
+    }
 }
 
 /// Returns the bytes of the name string `s`. Truncated at 63 bytes

@@ -5,6 +5,8 @@ edition = "2024"
 
 [features]
 build = []
+defmt = ["dep:defmt"]
 
 [dependencies]
 crc   = "3.4.0"
+defmt = { version = "1", optional = true, workspace = true }

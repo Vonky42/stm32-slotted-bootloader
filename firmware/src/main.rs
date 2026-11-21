@@ -5,13 +5,12 @@
 mod fmt;
 mod validate;
 
-use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotHeader};
+use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
 use stm32f4xx_hal as _;
 
 // Debug logging
-use crate::validate::SlotError;
 #[cfg(not(feature = "defmt"))]
 use panic_halt as _;
 
@@ -61,7 +60,7 @@ type Scan = [Result<SlotHeader, SlotError>; SLOT_COUNT];
 fn scan_slots() -> Scan {
     core::array::from_fn(|index| {
         let slot = SLOTS[index];
-        let r = validate::validate(slot);
+        let r = validate(slot);
         match &r {
             Ok(header) => {
                 let (major, minor, patch) = header.version_parts();
@@ -93,6 +92,7 @@ fn default_slot(scan: &Scan) -> Option<usize> {
 #[entry]
 fn main() -> ! {
     info!("Hello, poard!");
+    cortex_m::asm::delay(8_000_000); // for some reason this is still needed
     let scan = scan_slots();
     match default_slot(&scan) {
         Some(index) => jump_to_slot(Image::Application(SLOTS[index])),

@@ -32,6 +32,8 @@ enum Cmd {
         #[arg(long, value_parser = parse_slot)]
         slot: Slot,
     },
+    /// Scan the application slots
+    Scan,
 }
 
 #[derive(Subcommand)]
@@ -107,6 +109,7 @@ fn main() -> Result<()> {
             FlashTarget::App(application) => flash_app(application),
         },
         Cmd::Erase { slot } => erase_slot(&slot),
+        Cmd::Scan => todo!(),
     }
 }
 
