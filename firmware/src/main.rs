@@ -106,8 +106,8 @@ fn main() -> ! {
     cp.DCB.enable_trace();
     cp.DWT.enable_cycle_counter();
 
-    defmt::assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
-    defmt::info!("sysclk = {} Hz", rcc.clocks.sysclk().raw());
+    my_assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
+    info!("sysclk = {} Hz", rcc.clocks.sysclk().raw());
 
     let gpioc = dp.GPIOC.split(&mut rcc);
     let button = gpioc.pc13.into_floating_input();
@@ -115,7 +115,7 @@ fn main() -> ! {
     let mut debounced = Debouncer::new(button.is_low(), Instant::now());
     loop {
         if let Some(button_event) = debounced.poll(button.is_low(), Instant::now()) {
-            defmt::info!("{}", button_event);
+            info!("{}", button_event);
         }
     }
 

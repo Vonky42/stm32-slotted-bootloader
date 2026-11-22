@@ -59,7 +59,8 @@ impl Debouncer {
 }
 
 /// The event the `Debouncer` returns
-#[derive(Clone, Copy, Debug, PartialEq, defmt::Format)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ButtonEvent {
     /// The button has been pressed (debounced)
     Press,

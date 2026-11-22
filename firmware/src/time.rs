@@ -36,6 +36,7 @@ impl Duration {
         Self(ms * CYCLES_PER_MS)
     }
 
+    #[allow(dead_code)]
     pub const fn as_millis(&self) -> u32 {
         self.0 / CYCLES_PER_MS
     }
