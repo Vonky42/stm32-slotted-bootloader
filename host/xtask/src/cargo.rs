@@ -27,7 +27,11 @@ pub fn build(package: &str, args: &BuildArgs, env: &[(&str, String)]) -> Result<
     }
 
     if !args.features.is_empty() {
-        cmd.args(["--features", &args.features.join(",")]);
+        cmd.args([
+            "--features",
+            &args.features.join(","),
+            "--no-default-features",
+        ]);
     }
 
     cmd.envs(env.iter().map(|(k, v)| (k, v)));
