@@ -1,44 +1,53 @@
+#![allow(unused_macros)]
+
+#[cfg(feature = "defmt")]
 macro_rules! info {
-    ($($arg:tt)*) => {{
-        #[cfg(feature = "defmt")]
-        ::defmt::info!($($arg)*);
+    ($($t:tt)*) => { ::defmt::info!($($t)*) };
+}
 
-        #[cfg(feature = "no_defmt")]
+#[cfg(not(feature = "defmt"))]
+macro_rules! info {
+    ($s:literal $(, $x:expr)* $(,)?) => {{
         if false {
-            let _ = ($($arg)*);
+            let _ = ($( & $x ),*);
         }
     }};
 }
 
+#[cfg(feature = "defmt")]
 macro_rules! debug {
-    ($($arg:tt)*) => {{
-        #[cfg(feature = "defmt")]
-        ::defmt::debug!($($arg)*);
+    ($($t:tt)*) => { ::defmt::debug!($($t)*) };
+}
 
-        #[cfg(feature = "no_defmt")]
+#[cfg(not(feature = "defmt"))]
+macro_rules! debug {
+    ($s:literal $(, $x:expr)* $(,)?) => {{
         if false {
-            let _ = ($($arg)*);
+            let _ = ($( & $x ),*);
         }
     }};
 }
 
+#[cfg(feature = "defmt")]
 macro_rules! error {
-    ($($arg:tt)*) => {{
-        #[cfg(feature = "defmt")]
-        ::defmt::error!($($arg)*);
+    ($($t:tt)*) => { ::defmt::error!($($t)*) };
+}
 
-        #[cfg(feature = "no_defmt")]
+#[cfg(not(feature = "defmt"))]
+macro_rules! error {
+    ($s:literal $(, $x:expr)* $(,)?) => {{
         if false {
-            let _ = ($($arg)*);
+            let _ = ($( & $x ),*);
         }
     }};
 }
 
+#[cfg(feature = "defmt")]
 macro_rules! my_assert_eq {
-    ($($arg:tt)*) => {{
-        #[cfg(feature = "defmt")]
-        ::defmt::assert_eq!($($arg)*);
-        #[cfg(feature = "no_defmt")]
-        assert_eq!($($arg)*);
-    }};
+    ($($t:tt)*) => { ::defmt::assert_eq!($($t)*) };
+}
+
+#[cfg(not(feature = "defmt"))]
+macro_rules! my_assert_eq {
+    ($($t:tt)*) => { ::core::assert_eq!($($t)*) };
 }

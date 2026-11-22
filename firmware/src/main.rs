@@ -18,10 +18,14 @@ use cortex_m_rt::entry;
 use stm32f4xx_hal::{pac, prelude::*, rcc::Config};
 
 // Debug logging
-#[cfg(feature = "no_defmt")]
-use panic_halt as _;
 #[cfg(feature = "defmt")]
 use {defmt_rtt as _, panic_probe as _};
+#[cfg(not(feature = "defmt"))]
+#[inline(never)]
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
 
 /// Performs a bootload jump to the provided `slot`
 fn jump_to_slot(image: Image) -> ! {
