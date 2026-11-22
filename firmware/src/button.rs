@@ -1,7 +1,7 @@
 use crate::time::{Duration, Instant};
 
-const DEBOUNCE_MS: u32 = 20; // 20 ms
-const LONG_PRESS: u32 = 1_000; // 1 second
+const DEBOUNCE_MS: Duration = Duration::from_millis(20); // 20 ms
+pub const LONG_PRESS: Duration = Duration::from_millis(1_000); // 1 second
 
 /// Button debouncer used for the bootloader menu
 pub struct Debouncer {
@@ -31,9 +31,7 @@ impl Debouncer {
             return None;
         }
 
-        if self.pressed != self.stable
-            && now - self.last_change >= Duration::from_millis(DEBOUNCE_MS)
-        {
+        if self.pressed != self.stable && now - self.last_change >= DEBOUNCE_MS {
             self.stable = self.pressed;
             return Some(if self.stable {
                 self.stable_at = now;
@@ -46,10 +44,7 @@ impl Debouncer {
             });
         }
 
-        if self.stable
-            && !self.long_reported
-            && now - self.stable_at >= Duration::from_millis(LONG_PRESS)
-        {
+        if self.stable && !self.long_reported && now - self.stable_at >= LONG_PRESS {
             self.long_reported = true;
             return Some(ButtonEvent::LongPressReached);
         }

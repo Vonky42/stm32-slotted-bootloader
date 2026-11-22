@@ -1,4 +1,4 @@
-use core::ops::Sub;
+use core::ops::{Add, Mul, Rem, Sub};
 
 pub const SYSCLK_HZ: u32 = 84_000_000;
 const CYCLES_PER_MS: u32 = SYSCLK_HZ / 1000;
@@ -27,6 +27,15 @@ impl Sub for Instant {
     }
 }
 
+impl Add<Duration> for Instant {
+    type Output = Instant;
+
+    #[inline]
+    fn add(self, rhs: Duration) -> Self::Output {
+        Instant(self.0.wrapping_add(rhs.0))
+    }
+}
+
 impl Duration {
     pub const fn from_millis(ms: u32) -> Self {
         assert!(
@@ -39,6 +48,33 @@ impl Duration {
     #[allow(dead_code)]
     pub const fn as_millis(&self) -> u32 {
         self.0 / CYCLES_PER_MS
+    }
+}
+
+impl Mul<u32> for Duration {
+    type Output = Duration;
+
+    #[inline]
+    fn mul(self, rhs: u32) -> Self::Output {
+        Self(self.0 * rhs)
+    }
+}
+
+impl Add for Duration {
+    type Output = Duration;
+
+    #[inline]
+    fn add(self, rhs: Duration) -> Self::Output {
+        Duration(self.0 + rhs.0)
+    }
+}
+
+impl Rem for Duration {
+    type Output = Duration;
+
+    #[inline]
+    fn rem(self, rhs: Duration) -> Self::Output {
+        Duration(self.0 % rhs.0)
     }
 }
 

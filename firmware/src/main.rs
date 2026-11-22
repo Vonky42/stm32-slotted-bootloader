@@ -4,11 +4,13 @@
 #[macro_use]
 mod fmt;
 mod button;
+mod indicator;
 mod time;
 
 use crate::{
-    button::Debouncer,
-    time::{Instant, SYSCLK_HZ},
+    button::{ButtonEvent, Debouncer, LONG_PRESS},
+    indicator::{Indicator, led::LedIndicator},
+    time::{Duration, Instant, SYSCLK_HZ},
 };
 use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
 use cortex_m::asm::{self, bootload};
@@ -95,28 +97,47 @@ fn default_slot(scan: &Scan) -> Option<usize> {
 
 #[entry]
 fn main() -> ! {
-    info!("Hello, poard!");
-    // cortex_m::asm::delay(84_000_000); // for some reason this is still needed
-
+    // Setup
     let mut cp = cortex_m::Peripherals::take().unwrap();
     let dp = pac::Peripherals::take().unwrap();
-
     let mut rcc = dp.RCC.freeze(Config::hsi().sysclk(SYSCLK_HZ.Hz()));
-
     cp.DCB.enable_trace();
     cp.DWT.enable_cycle_counter();
 
     my_assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
     info!("sysclk = {} Hz", rcc.clocks.sysclk().raw());
 
+    let gpioa = dp.GPIOA.split(&mut rcc);
     let gpioc = dp.GPIOC.split(&mut rcc);
     let button = gpioc.pc13.into_floating_input();
 
-    let mut debounced = Debouncer::new(button.is_low(), Instant::now());
+    let now = Instant::now();
+    let mut led = LedIndicator::new(gpioa.pa5.into_push_pull_output(), now);
+    let mut debouncer = Debouncer::new(button.is_low(), now);
+
+    let mut slot = 0;
+    // let scan: [Result<SlotHeader, SlotError>; 4] = SLOTS.map(|s| validate(s));
+    let scan: [Result<SlotHeader, SlotError>; 4] = [Err(SlotError::Empty); 4]; // debug
+    led.show_selection(slot, &scan[slot as usize], now);
+
+    // Incomplete / incorrect, just for testing
     loop {
-        if let Some(button_event) = debounced.poll(button.is_low(), Instant::now()) {
+        let now = Instant::now();
+
+        if let Some(button_event) = debouncer.poll(button.is_low(), now) {
             info!("{}", button_event);
+            match button_event {
+                ButtonEvent::Release { held } if held < LONG_PRESS => {
+                    info!("slot: {}", slot);
+                    slot = (slot + 1) % SLOTS.len() as u8;
+                    led.show_selection(slot, &scan[slot as usize], now);
+                }
+                ButtonEvent::LongPressReached => led.show_error(now),
+                _ => {}
+            }
         }
+
+        led.tick(now);
     }
 
     #[allow(unreachable_code)] // stop crying pls
