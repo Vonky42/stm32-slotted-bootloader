@@ -3,16 +3,21 @@
 
 #[macro_use]
 mod fmt;
+mod button;
+mod time;
 
+use crate::{
+    button::Debouncer,
+    time::{Instant, SYSCLK_HZ},
+};
 use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
 use cortex_m::asm::{self, bootload};
 use cortex_m_rt::entry;
-use stm32f4xx_hal as _;
+use stm32f4xx_hal::{pac, prelude::*, rcc::Config};
 
 // Debug logging
-#[cfg(not(feature = "defmt"))]
+#[cfg(feature = "no_defmt")]
 use panic_halt as _;
-
 #[cfg(feature = "defmt")]
 use {defmt_rtt as _, panic_probe as _};
 
@@ -91,14 +96,39 @@ fn default_slot(scan: &Scan) -> Option<usize> {
 #[entry]
 fn main() -> ! {
     info!("Hello, poard!");
-    cortex_m::asm::delay(8_000_000); // for some reason this is still needed
-    let scan = scan_slots();
-    match default_slot(&scan) {
-        Some(index) => jump_to_slot(Image::Application(SLOTS[index])),
-        None => {
-            error!("no valid slot!");
+    // cortex_m::asm::delay(84_000_000); // for some reason this is still needed
+
+    let mut cp = cortex_m::Peripherals::take().unwrap();
+    let dp = pac::Peripherals::take().unwrap();
+
+    let mut rcc = dp.RCC.freeze(Config::hsi().sysclk(SYSCLK_HZ.Hz()));
+
+    cp.DCB.enable_trace();
+    cp.DWT.enable_cycle_counter();
+
+    defmt::assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
+    defmt::info!("sysclk = {} Hz", rcc.clocks.sysclk().raw());
+
+    let gpioc = dp.GPIOC.split(&mut rcc);
+    let button = gpioc.pc13.into_floating_input();
+
+    let mut debounced = Debouncer::new(button.is_low(), Instant::now());
+    loop {
+        if let Some(button_event) = debounced.poll(button.is_low(), Instant::now()) {
+            defmt::info!("{}", button_event);
         }
     }
 
-    loop {} // do nothing
+    #[allow(unreachable_code)] // stop crying pls
+    {
+        let scan = scan_slots();
+        match default_slot(&scan) {
+            Some(index) => jump_to_slot(Image::Application(SLOTS[index])),
+            None => {
+                error!("no valid slot!");
+            }
+        }
+
+        loop {} // do nothing
+    }
 }
