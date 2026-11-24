@@ -8,14 +8,10 @@ mod memory_x;
 mod patch;
 mod validate;
 
-// #[cfg(feature = "defmt")]
-// use {defmt_rtt as _, panic_probe as _};
-
 pub use crc::*;
 pub use header::*;
 pub use layout::*;
 #[cfg(feature = "build")]
 pub use memory_x::{emit_application_memory_x_from_env, emit_memory_x};
 pub use patch::*;
-// TODO: expose validate
 pub use validate::*;
