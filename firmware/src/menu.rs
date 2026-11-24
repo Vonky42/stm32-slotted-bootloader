@@ -1,5 +1,7 @@
 use crate::{
-    button::{ButtonEvent, LONG_PRESS},
+    MENU_TIMEOUT,
+    boot::jump_to_slot,
+    input::MenuInput,
     menu::MenuState::Armed,
     time::{Duration, Instant},
 };
@@ -22,6 +24,12 @@ pub struct BootMenu {
     slots: Slots,
     timeout: Option<Duration>,
     last_activity: Instant,
+}
+
+pub enum MenuCommand {
+    Next,
+    Arm,
+    Boot,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -70,23 +78,21 @@ impl BootMenu {
     /// Change the bootloader's MenuState based on `event` ButtenEvent input
     pub fn handle(
         &mut self,
-        event: ButtonEvent,
+        cmd: MenuCommand,
         indicator: &mut impl Indicator,
         now: Instant,
     ) -> Option<Action> {
-        let action = match (self.state, event) {
+        self.last_activity = now;
+        let action = match (self.state, cmd) {
             (MenuState::NoValidSlot, _) => None,
-            (MenuState::Selecting(s), ButtonEvent::LongPressReached) => {
+            (MenuState::Selecting(s), MenuCommand::Arm) => {
                 self.state = Armed(s);
                 debug!("boot pending on slot {}...", s);
                 None
             }
-            (MenuState::Armed(s), ButtonEvent::Release { held: _ }) => Some(Action::Boot(s)),
-            (MenuState::Selecting(_), ButtonEvent::Release { held }) => {
-                if held < LONG_PRESS {
-                    self.select_next();
-                    debug!("next valid slot: {}", &self.selected().unwrap());
-                }
+            (MenuState::Armed(s), MenuCommand::Boot) => Some(Action::Boot(s)),
+            (MenuState::Selecting(_), MenuCommand::Next) => {
+                self.select_next();
                 None
             }
             _ => {
@@ -97,6 +103,22 @@ impl BootMenu {
         self.show(indicator, now);
 
         action
+    }
+
+    /// Run the bootloaders main (menu) loop
+    pub fn run(slots: Slots, input: &mut impl MenuInput, indicator: &mut impl Indicator) -> ! {
+        let mut menu = Self::new(slots, indicator, Instant::now(), MENU_TIMEOUT);
+        loop {
+            let now = Instant::now();
+            let action = input
+                .poll(now)
+                .and_then(|cmd| menu.handle(cmd, indicator, now))
+                .or_else(|| menu.tick(now));
+            if let Some(Action::Boot(slot)) = action {
+                jump_to_slot(slot);
+            }
+            indicator.tick(now);
+        }
     }
 
     /// Handle time-based menu logic such as the `timeout` if configured

@@ -30,3 +30,9 @@ pub fn scan_slots() -> Slots {
         r
     })
 }
+
+/// Returns the index of the defualt slot to boot into
+/// TODO: to be replaced by persistent storage rather than first valid slot
+pub fn default_slot(slots: &Slots) -> Option<usize> {
+    slots.iter().position(|slot| slot.is_ok())
+}

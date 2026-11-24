@@ -17,9 +17,9 @@ impl Debouncer {
         Self {
             pressed,
             last_change: now,
-            stable: false,
+            stable: pressed,
             stable_at: now,
-            long_reported: false,
+            long_reported: pressed,
         }
     }
 

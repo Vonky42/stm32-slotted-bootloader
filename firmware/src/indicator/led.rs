@@ -58,15 +58,20 @@ impl<P: OutputPin> Indicator for LedIndicator<P> {
     fn show_selection(&mut self, slot: u8, _info: &Result<SlotHeader, SlotError>, now: Instant) {
         self.start(Pattern::Blinks(slot + 1), now);
     }
+
     fn show_boot_pending(&mut self, now: Instant) {
         self.start(Pattern::Solid, now)
     }
-    fn show_updating(&mut self, now: Instant) {
+
+    // once UART is implemented
+    fn _show_updating(&mut self, now: Instant) {
         self.start(Pattern::Solid, now)
     }
+
     fn show_error(&mut self, now: Instant) {
         self.start(Pattern::FastFlash, now);
     }
+
     fn tick(&mut self, now: Instant) {
         let on = match self.pattern {
             Pattern::Solid => true,

@@ -3,24 +3,24 @@
 
 #[macro_use]
 mod fmt;
+mod board;
 mod boot;
-mod button;
 mod indicator;
+mod input;
 mod menu;
 mod slots;
 mod time;
 
 use crate::{
+    board::Board,
     boot::jump_to_slot,
-    button::Debouncer,
-    indicator::{Indicator, led::LedIndicator},
-    menu::{Action, BootMenu},
-    slots::scan_slots,
-    time::{Duration, Instant, SYSCLK_HZ},
+    indicator::led::LedIndicator,
+    input::single_button::SingleButton,
+    menu::BootMenu,
+    slots::{default_slot, scan_slots},
+    time::{Duration, Instant},
 };
-use boot_layout::{Image, SLOTS};
 use cortex_m_rt::entry;
-use stm32f4xx_hal::{pac, prelude::*, rcc::Config};
 
 // Debug logging
 #[cfg(feature = "defmt")]
@@ -32,41 +32,32 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
+/// How long the bootmenu allows inactivity before booting into the default slot / selected slot (TODO)
+pub const MENU_TIMEOUT: Option<Duration> = Some(Duration::from_millis(30_000)); // 30 seconds
+
 #[entry]
 fn main() -> ! {
-    // Setup
-    let mut cp = cortex_m::Peripherals::take().unwrap();
-    let dp = pac::Peripherals::take().unwrap();
-    let mut rcc = dp.RCC.freeze(Config::hsi().sysclk(SYSCLK_HZ.Hz()));
-    cp.DCB.enable_trace();
-    cp.DWT.enable_cycle_counter();
+    // Initialized peripherals
+    let mut board = Board::init();
 
-    my_assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
+    // Scan the flash slots
+    let slots = scan_slots();
 
-    let gpioa = dp.GPIOA.split(&mut rcc);
-    let gpioc = dp.GPIOC.split(&mut rcc);
-    let button = gpioc.pc13.into_floating_input();
+    // Holding the user button and the reset button enters the boot menu
+    if !board.button_pressed() {
+        if let Some(slot) = default_slot(&slots) {
+            jump_to_slot(slot);
+        }
+    }
 
     let now = Instant::now();
-    let mut led = LedIndicator::new(gpioa.pa5.into_push_pull_output(), now);
-    let mut debouncer = Debouncer::new(button.is_low(), now);
-    let scan = scan_slots();
-    let mut menu = BootMenu::new(
-        scan,
-        &mut led,
-        Instant::now(),
-        Some(Duration::from_millis(5_000)),
-    );
 
-    loop {
-        let now = Instant::now();
-        let action = debouncer
-            .poll(button.is_low(), now)
-            .and_then(|event| menu.handle(event, &mut led, now))
-            .or_else(|| menu.tick(now));
-        if let Some(Action::Boot(slot)) = action {
-            jump_to_slot(Image::Application(SLOTS[slot]));
-        }
-        led.tick(now);
-    }
+    // Menu Indicator
+    let mut led = LedIndicator::new(board.ld2, now);
+
+    // Input
+    let mut input = SingleButton::new(board.button, now);
+
+    // Start the bootloader menu
+    BootMenu::run(slots, &mut input, &mut led);
 }

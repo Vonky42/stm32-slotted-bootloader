@@ -160,7 +160,9 @@ fn flash_app(application: &FlashApp) -> Result<()> {
             probe::download_bin(&bin_path, application.slot.region.base)?;
             probe::reset()
         }
-        Transport::Uart => bail!("TODO"),
+        Transport::Uart => {
+            bail!("UART flashing has not been implemented yet! Please use Probe-rs using ST-LINK")
+        }
     }
 }
 
