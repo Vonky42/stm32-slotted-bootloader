@@ -1,4 +1,4 @@
-use boot_layout::{HEADER_SIZE, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
+use boot_core::{HEADER_SIZE, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
 
 type Slots = [Result<SlotHeader, SlotError>; SLOT_COUNT];
 

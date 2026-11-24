@@ -1,0 +1,23 @@
+[package]
+name            = "stm32-slotted-bootloader"
+version         = { workspace = true }
+edition         = { workspace = true}
+
+[features]
+default         = ["defmt"]
+defmt           = ["dep:defmt", "dep:defmt-rtt", "dep:panic-probe", "boot-core/defmt", "boot-backend/defmt", "boot-frontend/defmt"]
+
+[dependencies]
+boot-core       = { workspace = true }
+boot-frontend   = { workspace = true }
+boot-backend    = { workspace = true }
+
+stm32f4xx-hal   = { workspace = true }
+cortex-m        = { workspace = true }
+cortex-m-rt     = { workspace = true }
+defmt           = { workspace = true, optional = true }
+defmt-rtt       = { workspace = true, optional = true }
+panic-probe     = { workspace = true, optional = true }
+
+[build-dependencies]
+boot-core       = { workspace = true, features = ["build"] }

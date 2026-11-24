@@ -1,4 +1,4 @@
-use boot_layout::{BOOTLOADER, Image, emit_memory_x};
+use boot_core::{BOOTLOADER, Image, emit_memory_x};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");

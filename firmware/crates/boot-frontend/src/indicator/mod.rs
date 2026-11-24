@@ -1,5 +1,4 @@
-use crate::time::Instant;
-use boot_layout::{SlotError, SlotHeader};
+use boot_core::{Instant, SlotError, SlotHeader};
 
 pub trait Indicator {
     fn show_selection(&mut self, slot: u8, info: &Result<SlotHeader, SlotError>, now: Instant);

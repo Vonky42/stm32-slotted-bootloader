@@ -1,4 +1,4 @@
-use crate::{menu::MenuCommand, time::Instant};
+use crate::{Instant, MenuCommand};
 
 pub mod debounce;
 pub mod single_button;

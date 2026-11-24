@@ -1,4 +1,4 @@
-use crate::{ERASED, RAM, SLOT_MAGIC, Slot, SlotHeader, header_crc, image_crc};
+use crate::{header_crc, image_crc, Slot, SlotHeader, ERASED, RAM, SLOT_MAGIC};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]

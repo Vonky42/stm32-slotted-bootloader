@@ -5,7 +5,7 @@ use stm32f4xx_hal::{
     rcc::{Config, RccExt},
 };
 
-use crate::time::SYSCLK_HZ;
+use boot_core::SYSCLK_HZ;
 
 pub struct Board {
     pub ld2: PA5<Output<PushPull>>, // active-high

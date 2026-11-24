@@ -1,11 +1,5 @@
-use crate::{
-    MENU_TIMEOUT,
-    boot::jump_to_slot,
-    input::MenuInput,
-    menu::MenuState::Armed,
-    time::{Duration, Instant},
-};
-use boot_layout::{SLOT_COUNT, SlotError, SlotHeader};
+use crate::{input::MenuInput, menu::MenuState::Armed};
+use boot_core::{Duration, Instant, SLOT_COUNT, SlotError, SlotHeader};
 
 use crate::indicator::Indicator;
 
@@ -106,17 +100,24 @@ impl BootMenu {
     }
 
     /// Run the bootloaders main (menu) loop
-    pub fn run(slots: Slots, input: &mut impl MenuInput, indicator: &mut impl Indicator) -> ! {
-        let mut menu = Self::new(slots, indicator, Instant::now(), MENU_TIMEOUT);
+    pub fn run(
+        slots: Slots,
+        input: &mut impl MenuInput,
+        indicator: &mut impl Indicator,
+        timeout: Option<Duration>,
+        clock: impl Fn() -> Instant,
+    ) -> Action {
+        let mut menu = Self::new(slots, indicator, clock(), timeout);
         loop {
-            let now = Instant::now();
-            let action = input
+            let now = clock();
+            if let Some(action) = input
                 .poll(now)
                 .and_then(|cmd| menu.handle(cmd, indicator, now))
-                .or_else(|| menu.tick(now));
-            if let Some(Action::Boot(slot)) = action {
-                jump_to_slot(slot);
+                .or_else(|| menu.tick(now))
+            {
+                return action;
             }
+
             indicator.tick(now);
         }
     }

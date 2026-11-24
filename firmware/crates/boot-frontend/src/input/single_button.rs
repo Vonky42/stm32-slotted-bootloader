@@ -1,4 +1,5 @@
-use stm32f4xx_hal::hal::digital::InputPin;
+use boot_core::Instant;
+use embedded_hal::digital::InputPin;
 
 use crate::input::MenuCommand;
 use crate::input::debounce::LONG_PRESS;
@@ -6,7 +7,6 @@ use crate::input::{
     MenuInput,
     debounce::{ButtonEvent, Debouncer},
 };
-use crate::time::Instant;
 
 pub struct SingleButton<P> {
     pin: P,
@@ -28,7 +28,7 @@ impl<P: InputPin> SingleButton<P> {
 }
 
 impl<P: InputPin> MenuInput for SingleButton<P> {
-    fn poll(&mut self, now: crate::time::Instant) -> Option<MenuCommand> {
+    fn poll(&mut self, now: Instant) -> Option<MenuCommand> {
         let pressed = self.pin.is_low().unwrap_or(false);
 
         match self.debouncer.poll(pressed, now)? {

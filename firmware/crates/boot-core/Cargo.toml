@@ -1,0 +1,12 @@
+[package]
+name        = "boot-core"
+version     = "0.1.0"
+edition     = "2024"
+
+[features]
+build       = []
+defmt       = ["dep:defmt"]
+
+[dependencies]
+crc         = { workspace = true }
+defmt       = { optional = true, workspace = true }

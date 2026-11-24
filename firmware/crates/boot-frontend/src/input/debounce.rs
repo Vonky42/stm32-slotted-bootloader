@@ -1,4 +1,4 @@
-use crate::time::{Duration, Instant};
+use boot_core::{Duration, Instant};
 
 const DEBOUNCE_MS: Duration = Duration::from_millis(20); // 20 ms
 pub const LONG_PRESS: Duration = Duration::from_millis(1_000); // 1 second

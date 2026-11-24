@@ -1,8 +1,6 @@
 use crate::probe;
 use anyhow::Result;
-use boot_layout::{
-    HEADER_SIZE, SLOTS, Slot, SlotError, SlotHeader, validate_header, validate_image,
-};
+use boot_core::{HEADER_SIZE, SLOTS, Slot, SlotError, SlotHeader, validate_header, validate_image};
 use core::mem::size_of;
 use probe_rs::{Core, MemoryInterface};
 

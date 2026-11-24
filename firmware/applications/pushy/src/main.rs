@@ -5,7 +5,7 @@ use cortex_m_rt::entry;
 use panic_halt as _;
 use stm32f4xx_hal::{pac, prelude::*, rcc::Config};
 
-boot_layout::slot_header!();
+boot_core::slot_header!();
 
 #[entry]
 fn main() -> ! {

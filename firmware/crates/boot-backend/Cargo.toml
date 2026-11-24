@@ -1,0 +1,12 @@
+[package]
+name            = "boot-backend"
+version         = { workspace = true }
+edition         = { workspace = true }
+
+[features]
+defmt           = ["dep:defmt", "boot-core/defmt"]
+
+[dependencies]
+boot-core       = { workspace = true  }
+cortex-m        = { workspace = true }
+defmt           = { workspace = true, optional = true }

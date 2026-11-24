@@ -12,9 +12,13 @@ pub struct Instant(u32);
 pub struct Duration(u32);
 
 impl Instant {
-    pub fn now() -> Self {
-        Self(cortex_m::peripheral::DWT::cycle_count())
+    pub const fn from_cycles(cycles: u32) -> Self {
+        Self(cycles)
     }
+
+    // pub fn now() -> Self {
+    //     Self(cortex_m::peripheral::DWT::cycle_count())
+    // }
 }
 
 // Instant - Instant = Duration

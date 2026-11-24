@@ -1,0 +1,12 @@
+[package]
+name            = "boot-frontend"
+version         = "0.1.0"
+edition         = "2024"
+
+[features]
+defmt           = ["dep:defmt", "boot-core/defmt"]
+
+[dependencies]
+boot-core       = { workspace = true }
+embedded-hal    = { workspace = true }
+defmt           = { workspace = true, optional = true }

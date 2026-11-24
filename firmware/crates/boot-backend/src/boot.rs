@@ -1,4 +1,4 @@
-use boot_layout::SLOTS;
+use boot_core::SLOTS;
 use cortex_m::asm::{self, bootload};
 
 /// Performs a bootload jump to the provided `slot`

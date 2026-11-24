@@ -7,6 +7,6 @@ publish = false
 [dependencies]
 clap = { version = "=4.6.8", features = ["derive"] }
 anyhow   = "1.0.104"
-boot-layout = { path = "../../firmware/crates/boot-layout" }
+boot-core = { path = "../../firmware/crates/boot-core" }
 object   = "0.41.0"
 probe-rs   = "0.32.0"

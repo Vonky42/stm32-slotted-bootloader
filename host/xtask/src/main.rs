@@ -3,7 +3,7 @@ mod probe;
 mod scan;
 
 use anyhow::{Context, Result, anyhow, bail};
-use boot_layout::{HEADER_SIZE, SLOT_COUNT, Slot, patch};
+use boot_core::{HEADER_SIZE, SLOT_COUNT, Slot, patch};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use object::{
     Endianness, elf,

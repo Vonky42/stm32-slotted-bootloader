@@ -30,7 +30,7 @@ fn TIM2() {
     });
 }
 
-boot_layout::slot_header!();
+boot_core::slot_header!();
 
 #[entry]
 fn main() -> ! {

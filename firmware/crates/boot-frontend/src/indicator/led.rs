@@ -1,7 +1,6 @@
 use crate::indicator::Indicator;
-use crate::time::{Duration, Instant};
-use boot_layout::{SlotError, SlotHeader};
-use stm32f4xx_hal::hal::digital::OutputPin;
+use boot_core::{Duration, Instant, SlotError, SlotHeader};
+use embedded_hal::digital::OutputPin;
 
 const ON: Duration = Duration::from_millis(150);
 const OFF: Duration = Duration::from_millis(250);
