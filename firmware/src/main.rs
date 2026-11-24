@@ -5,11 +5,13 @@
 mod fmt;
 mod button;
 mod indicator;
+mod menu;
 mod time;
 
 use crate::{
     button::{ButtonEvent, Debouncer, LONG_PRESS},
     indicator::{Indicator, led::LedIndicator},
+    menu::{Action, BootMenu},
     time::{Duration, Instant, SYSCLK_HZ},
 };
 use boot_layout::{HEADER_SIZE, Image, SLOT_COUNT, SLOTS, SlotError, SlotHeader, validate};
@@ -109,7 +111,6 @@ fn main() -> ! {
     cp.DWT.enable_cycle_counter();
 
     my_assert_eq!(rcc.clocks.sysclk().raw(), SYSCLK_HZ);
-    info!("sysclk = {} Hz", rcc.clocks.sysclk().raw());
 
     let gpioa = dp.GPIOA.split(&mut rcc);
     let gpioc = dp.GPIOC.split(&mut rcc);
@@ -118,42 +119,23 @@ fn main() -> ! {
     let now = Instant::now();
     let mut led = LedIndicator::new(gpioa.pa5.into_push_pull_output(), now);
     let mut debouncer = Debouncer::new(button.is_low(), now);
+    let scan = scan_slots();
+    let mut menu = BootMenu::new(
+        scan,
+        &mut led,
+        Instant::now(),
+        Some(Duration::from_millis(5_000)),
+    );
 
-    let mut slot = 0;
-    // let scan: [Result<SlotHeader, SlotError>; 4] = SLOTS.map(|s| validate(s));
-    let scan: [Result<SlotHeader, SlotError>; 4] = [Err(SlotError::Empty); 4]; // debug
-    led.show_selection(slot, &scan[slot as usize], now);
-
-    // Incomplete / incorrect, just for testing
     loop {
         let now = Instant::now();
-
-        if let Some(button_event) = debouncer.poll(button.is_low(), now) {
-            info!("{}", button_event);
-            match button_event {
-                ButtonEvent::Release { held } if held < LONG_PRESS => {
-                    info!("slot: {}", slot);
-                    slot = (slot + 1) % SLOTS.len() as u8;
-                    led.show_selection(slot, &scan[slot as usize], now);
-                }
-                ButtonEvent::LongPressReached => led.show_error(now),
-                _ => {}
-            }
+        let action = debouncer
+            .poll(button.is_low(), now)
+            .and_then(|event| menu.handle(event, &mut led, now))
+            .or_else(|| menu.tick(now));
+        if let Some(Action::Boot(slot)) = action {
+            jump_to_slot(Image::Application(SLOTS[slot]));
         }
-
         led.tick(now);
-    }
-
-    #[allow(unreachable_code)] // stop crying pls
-    {
-        let scan = scan_slots();
-        match default_slot(&scan) {
-            Some(index) => jump_to_slot(Image::Application(SLOTS[index])),
-            None => {
-                error!("no valid slot!");
-            }
-        }
-
-        loop {} // do nothing
     }
 }
