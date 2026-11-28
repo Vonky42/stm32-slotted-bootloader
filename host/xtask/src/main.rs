@@ -37,6 +37,7 @@ enum Cmd {
     },
     /// Scan the application slots
     Scan {
+        /// Scan the application slots under reset if the device is sleeping
         #[arg(long)]
         under_reset: bool,
     },
